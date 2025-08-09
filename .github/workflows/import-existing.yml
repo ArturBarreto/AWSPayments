@@ -1,5 +1,4 @@
 name: Import existing infra (one-time)
-
 on:
   workflow_dispatch: {}
 
@@ -16,32 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure AWS via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::982534393012:role/GitHubActionsCdkDeployRole
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
 
-      - name: Terraform Init
+      - name: Terraform Init (remote backend)
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -input=false
+        run: terraform init -input=false -reconfigure
 
       - name: Import DynamoDB table if it exists
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           set -e
-          # Check if table "payments" exists
-          if aws dynamodb describe-table --table-name payments > /dev/null 2>&1; then
-            echo "Table exists. Importing into state..."
+          if aws dynamodb describe-table --table-name payments >/dev/null 2>&1; then
             terraform import -input=false aws_dynamodb_table.payments payments || true
           else
-            echo "Table 'payments' not found. Skipping import."
+            echo "Table 'payments' not found. Skipping."
           fi
 
       - name: Import IAM role if it exists
@@ -49,13 +42,12 @@ jobs:
         run: |
           set -e
           ROLE_NAME="payments-dev-lambda-exec"
-          if aws iam get-role --role-name "$ROLE_NAME" > /dev/null 2>&1; then
-            echo "Role exists. Importing into state..."
+          if aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
             terraform import -input=false aws_iam_role.lambda_exec "$ROLE_NAME" || true
           else
-            echo "Role '$ROLE_NAME' not found. Skipping import."
+            echo "Role '$ROLE_NAME' not found. Skipping."
           fi
 
-      - name: Show plan (no changes expected beyond drift)
+      - name: Terraform Plan (should NOT try to recreate those)
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -input=false -no-color -var="region=${{ env.AWS_REGION }}"

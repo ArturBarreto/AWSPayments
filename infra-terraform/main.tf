@@ -1,14 +1,16 @@
 terraform {
+  backend "s3" {
+    bucket         = "tf-state-982534393012-eu-west-3"
+    key            = "awspayments/terraform.tfstate"
+    region         = "eu-west-3"
+    dynamodb_table = "tf-locks"
+    encrypt        = true
+  }
+
   required_version = ">= 1.6.0"
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.50"
-    }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.5"
-    }
+    aws = { source = "hashicorp/aws", version = "~> 5.50" }
+    archive = { source = "hashicorp/archive", version = "~> 2.5" }
   }
 }
 

@@ -1,0 +1,31 @@
+name: Terraform Force Unlock (one-time)
+on:
+  workflow_dispatch:
+    inputs:
+      lock_id:
+        description: "Lock ID from the error (e.g., 773d0629-...)"
+        required: true
+permissions:
+  id-token: write
+  contents: read
+env:
+  AWS_REGION: eu-west-3
+  TF_WORKING_DIR: infra-terraform
+jobs:
+  unlock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::982534393012:role/GitHubActionsCdkDeployRole
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+      - name: Terraform Init (remote backend)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -reconfigure -input=false
+      - name: Force unlock
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform force-unlock -force "${{ github.event.inputs.lock_id }}"

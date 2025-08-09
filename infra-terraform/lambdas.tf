@@ -16,6 +16,7 @@ resource "aws_lambda_function" "create_card" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.payments.name
+      CODE_VERSION = var.code_version
     }
   }
 
@@ -41,6 +42,7 @@ resource "aws_lambda_function" "get_card" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.payments.name
+      CODE_VERSION = var.code_version
     }
   }
 

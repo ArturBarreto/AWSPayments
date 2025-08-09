@@ -10,17 +10,30 @@ resource "aws_lambda_function" "create_card" {
   role          = aws_iam_role.lambda_exec.arn
   handler       = "handler.handle"
   runtime       = "python3.13"
-  filename      = data.archive_file.create_card_zip.output_path
-  source_code_hash = data.archive_file.create_card_zip.output_base64sha256
+  filename            = data.archive_file.create_card_zip.output_path
+  source_code_hash    = data.archive_file.create_card_zip.output_base64sha256
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.payments.name
+      TABLE_NAME   = aws_dynamodb_table.payments.name
       CODE_VERSION = var.code_version
     }
   }
 
   tracing_config { mode = "Active" }
+
+  # ✅ ensure IAM is ready before Lambda
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs,
+    aws_iam_role_policy_attachment.lambda_ddb_rw,
+    aws_iam_role_policy_attachment.lambda_xray
+  ]
+
+  timeouts {
+    create = "10m"
+    update = "10m"
+  }
+
   tags = local.tags
 }
 
@@ -36,16 +49,28 @@ resource "aws_lambda_function" "get_card" {
   role          = aws_iam_role.lambda_exec.arn
   handler       = "handler.handle"
   runtime       = "python3.13"
-  filename      = data.archive_file.get_card_zip.output_path
+  filename         = data.archive_file.get_card_zip.output_path
   source_code_hash = data.archive_file.get_card_zip.output_base64sha256
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.payments.name
+      TABLE_NAME   = aws_dynamodb_table.payments.name
       CODE_VERSION = var.code_version
     }
   }
 
   tracing_config { mode = "Active" }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs,
+    aws_iam_role_policy_attachment.lambda_ddb_rw,
+    aws_iam_role_policy_attachment.lambda_xray
+  ]
+
+  timeouts {
+    create = "10m"
+    update = "10m"
+  }
+
   tags = local.tags
 }

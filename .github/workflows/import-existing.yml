@@ -48,6 +48,19 @@ jobs:
             echo "Role '$ROLE_NAME' not found. Skipping."
           fi
 
+      - name: Import IAM policy if it exists
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          set -e
+          POLICY_NAME="payments-dev-ddb-rw"
+          POLICY_ARN=$(aws iam list-policies --scope Local --query "Policies[?PolicyName=='${POLICY_NAME}'].Arn | [0]" --output text)
+          if [ "$POLICY_ARN" != "None" ] && [ -n "$POLICY_ARN" ]; then
+            echo "Policy exists ($POLICY_ARN). Importing into state..."
+            terraform import -input=false aws_iam_policy.ddb_rw "$POLICY_ARN" || true
+          else
+            echo "Policy '${POLICY_NAME}' not found. Skipping."
+          fi
+
       - name: Terraform Plan (should NOT try to recreate those)
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -input=false -no-color -var="region=${{ env.AWS_REGION }}"

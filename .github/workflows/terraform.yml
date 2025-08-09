@@ -42,13 +42,9 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -input=false -no-color -var="region=${{ env.AWS_REGION }}" \
-              -var="code_version=${{ github.sha }}"
+        run: terraform plan -input=false -no-color -var="region=${{ env.AWS_REGION }}" -var="code_version=${{ github.sha }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform apply -input=false -auto-approve \
-              -var="region=${{ env.AWS_REGION }}" \
-              -var="code_version=${{ github.sha }}"
-
+        run: terraform apply -input=false -auto-approve -var="region=${{ env.AWS_REGION }}" -var="code_version=${{ github.sha }}"

@@ -2,7 +2,7 @@
 data "archive_file" "create_card_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../services/create_card"
-  output_path = "${path.module}/.dist/create_card.zip"
+  output_path = "${path.module}/create_card.zip"
 }
 
 resource "aws_lambda_function" "create_card" {
@@ -27,7 +27,7 @@ resource "aws_lambda_function" "create_card" {
 data "archive_file" "get_card_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../services/get_card"
-  output_path = "${path.module}/.dist/get_card.zip"
+  output_path = "${path.module}/get_card.zip"
 }
 
 resource "aws_lambda_function" "get_card" {

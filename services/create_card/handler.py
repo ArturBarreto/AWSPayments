@@ -5,6 +5,8 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ['TABLE_NAME'])
 
 def handle(event, context):
+    print("CODE_VERSION:", os.getenv("CODE_VERSION"))
+
     card_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     item = {

@@ -11,7 +11,8 @@ resource "aws_lambda_function" "create_card" {
   handler       = "handler.handle"
   runtime       = "python3.13"
   filename            = data.archive_file.create_card_zip.output_path
-  source_code_hash    = data.archive_file.create_card_zip.output_base64sha256
+  source_code_hash = base64sha256("${data.archive_file.create_card_zip.output_base64sha256}${var.code_version}"
+)
 
   environment {
     variables = {
@@ -50,7 +51,8 @@ resource "aws_lambda_function" "get_card" {
   handler       = "handler.handle"
   runtime       = "python3.13"
   filename         = data.archive_file.get_card_zip.output_path
-  source_code_hash = data.archive_file.get_card_zip.output_base64sha256
+  source_code_hash = base64sha256("${data.archive_file.get_card_zip.output_base64sha256}${var.code_version}"
+)
 
   environment {
     variables = {

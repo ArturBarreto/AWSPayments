@@ -11,6 +11,8 @@ def _to_jsonable(v):
     return v
 
 def handle(event, context):
+    print("CODE_VERSION:", os.getenv("CODE_VERSION"))
+
     card_id = event['pathParameters']['id']
     res = table.get_item(Key={'pk': f'CARD#{card_id}', 'sk': 'PROFILE'})
     item = res.get('Item')

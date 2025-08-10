@@ -34,7 +34,4 @@ resource "aws_dynamodb_table" "payments" {
 
   tags = local.tags
 
-  lifecycle {
-    prevent_destroy = true
-  }
 }

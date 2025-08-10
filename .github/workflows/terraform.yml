@@ -35,21 +35,26 @@ jobs:
         with:
           terraform_version: 1.9.5
 
-      - name: Terraform Init
+      - name: Terraform Init (remote backend)
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init -input=false
+        run: terraform init -input=false -reconfigure
 
-      - name: Terraform Validate
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform validate
-
-      - name: Terraform Plan
+      - name: Terraform Plan (PR only)
         if: github.event_name == 'pull_request'
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -input=false -no-color -var="region=${{ env.AWS_REGION }}" -var="code_version=${{ github.sha }}"
 
-      - name: Terraform Apply
+      - name: Terraform Destroy (⚠️ wipes everything)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform destroy -input=false -auto-approve -lock-timeout=5m -var="region=${{ env.AWS_REGION }}" -var="code_version=${{ github.sha }}"
+
+      - name: Terraform Apply (fresh create)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -input=false -auto-approve -lock-timeout=5m -var="region=${{ env.AWS_REGION }}" -var="code_version=${{ github.sha }}"
 
+      - name: Show Outputs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output -json | jq -r '.api_url.value'
